@@ -16,7 +16,11 @@ Runtime dependencies:
 
 - Rootful Docker (CLI on `PATH`, daemon running) with the buildx plugin; the
   sandbox image build requires BuildKit. Rootless Docker is not supported.
-- Optional: `qemu-system-x86_64` and `cpio` for the experimental `qemu` backend.
+- Optional: `qemu-system-x86_64` and `cpio` for the experimental `qemu` backend,
+  which builds an x86-64 guest and is practical only on x86-64 Linux hosts,
+  where KVM can accelerate it. On arm64 hosts and on macOS it falls back to
+  full emulation. The default `docker` backend is unaffected and runs natively
+  on every supported platform.
 
 Building from source additionally requires Git, Make, and Go 1.24 or newer. Use
 the official [Go installation instructions](https://go.dev/doc/install) if your

@@ -17,7 +17,8 @@ current CLI and will get more detail over time.
 
 - A supported host: Linux, macOS, or Windows through WSL2.
 - A container backend. Enclave uses Docker; an experimental QEMU microVM
-  backend exists but currently runs without network restrictions.
+  backend exists but currently runs without network restrictions, and is
+  x86-64 Linux only in practice.
 - Git. Enclave runs from inside a git repository, and works with git worktrees when
   you want to isolate parallel sessions.
 - Credentials for a supported agent, such as Claude Code, Codex, or OpenCode.
