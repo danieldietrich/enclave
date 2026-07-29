@@ -15,6 +15,7 @@ current CLI and will get more detail over time.
 
 ## Prerequisites
 
+- A supported host: Linux, macOS, or Windows through WSL2.
 - A container backend. Enclave uses Docker; an experimental QEMU microVM
   backend exists but currently runs without network restrictions.
 - Git. Enclave runs from inside a git repository, and works with git worktrees when
@@ -23,9 +24,76 @@ current CLI and will get more detail over time.
 
 ## Install
 
-{/* TODO: replace with the published install command once the release channel is live. */}
+Prebuilt binaries and a Debian package are published on the
+[rolling release page](https://github.com/eclipse-enclave/enclave/releases/tag/rolling).
 
-For now, build from source. You will need the Go toolchain.
+:::info
+The rolling release is a pre-release built from the current `main` branch, not a
+stable versioned release. Its assets are replaced as `main` moves, so expect
+behavior to change between downloads.
+:::
+
+### Ubuntu 24.04 (x86-64)
+
+Download `enclave_<version>_amd64.deb` and install it with APT so the runtime
+dependencies are resolved:
+
+```bash
+sudo apt install ./enclave_*_amd64.deb
+```
+
+### Other Linux (x86-64 and arm64)
+
+Download the binary matching your architecture, `enclave-linux-amd64` or
+`enclave-linux-arm64`, together with `checksums.txt`. Verify it, make it
+executable, and put it on your `PATH`:
+
+```bash
+sha256sum --check --ignore-missing checksums.txt
+chmod +x enclave-linux-amd64
+sudo install enclave-linux-amd64 /usr/local/bin/enclave
+```
+
+### macOS
+
+Use `enclave-darwin-arm64` on Apple Silicon and `enclave-darwin-amd64` on Intel.
+Download it together with `checksums.txt`:
+
+```bash
+shasum -a 256 --check --ignore-missing checksums.txt
+chmod +x enclave-darwin-arm64
+sudo install enclave-darwin-arm64 /usr/local/bin/enclave
+```
+
+:::note
+The macOS binaries are unsigned and not notarized. A download through the browser
+is quarantined by Gatekeeper and will not run. Clear the flag after downloading:
+
+```bash
+xattr -d com.apple.quarantine ./enclave-darwin-arm64
+```
+
+Downloading with `curl` or `gh release download` avoids the quarantine flag in
+the first place.
+:::
+
+### Windows (WSL2)
+
+There is no native Windows build. The supported path is WSL2:
+
+1. Install WSL2 with an Ubuntu 24.04 distribution.
+2. Make Docker available inside that distribution, either through Docker
+   Desktop's WSL integration or by installing Docker Engine in the distribution
+   itself.
+3. Follow the Linux instructions above from inside the distribution.
+
+Keep the project in the WSL filesystem (for example under `~/`) rather than on a
+Windows drive under `/mnt/c`. Paths on `/mnt/c` cross the interop layer and are
+noticeably slower.
+
+### Build from source
+
+Building from source still works and needs the Go toolchain:
 
 ```bash
 git clone https://github.com/eclipse-enclave/enclave

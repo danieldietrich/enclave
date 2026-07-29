@@ -8,6 +8,10 @@ A Docker-based sandbox for running agentic coding tools — Claude, Codex, OpenC
 
 ## Requirements
 
+Linux and macOS (with Docker Desktop) are supported natively. On Windows, run
+Enclave inside WSL2; the Linux instructions apply within the WSL distribution
+and no native Windows build is provided.
+
 Runtime dependencies:
 
 - Rootful Docker (CLI on `PATH`, daemon running) with the buildx plugin; the
@@ -46,14 +50,35 @@ sudo apt install ./enclave_*_amd64.deb
 
 ### Standalone binary
 
-The rolling release also provides a self-contained Linux x86-64 binary. Verify
-it with `checksums.txt`, make it executable, and place it on your `PATH`:
+The rolling release also provides self-contained binaries:
+
+| Artifact | Platform |
+|----------|----------|
+| `enclave-linux-amd64` | Linux x86-64 |
+| `enclave-linux-arm64` | Linux arm64 |
+| `enclave-darwin-arm64` | macOS (Apple Silicon) |
+| `enclave-darwin-amd64` | macOS (Intel) |
+
+Verify the download with `checksums.txt`, make it executable, and place it on
+your `PATH`, substituting the artifact for your platform:
 
 ```bash
-sha256sum --check --ignore-missing checksums.txt
+sha256sum --check --ignore-missing checksums.txt          # Linux
+shasum -a 256 --check --ignore-missing checksums.txt      # macOS
 chmod +x enclave-linux-amd64
 sudo install enclave-linux-amd64 /usr/local/bin/enclave
 ```
+
+On macOS the binaries are unsigned and not notarized, so a binary downloaded
+through a browser is quarantined and Gatekeeper refuses to run it. Remove the
+attribute before installing:
+
+```bash
+xattr -d com.apple.quarantine ./enclave-darwin-arm64
+```
+
+Fetching the artifact with `curl` or `gh release download` avoids the quarantine
+attribute entirely.
 
 The binary includes the Dockerfiles, extensions, documentation, and other
 runtime assets. It extracts its assets on first use.
@@ -72,6 +97,18 @@ On Linux this installs the binary to `~/.local/bin/`. Make sure that directory
 is on your `PATH`. On macOS the default is `/usr/local/bin/`; copying there may
 need `sudo` or a writable `/usr/local/bin`. Override the destination with
 `make install INSTALL_BIN=...`.
+
+### Windows (WSL2)
+
+There is no native Windows build. Install WSL2 with an Ubuntu 24.04
+distribution and make Docker available inside it — either through Docker
+Desktop's WSL integration or by installing Docker Engine in the distribution.
+Then follow the Linux instructions above from inside WSL, using the `.deb` or
+`enclave-linux-amd64`.
+
+Keep the project working directory inside the WSL filesystem rather than under
+`/mnt/c`. Bind-mounting a Windows drive path through the WSL interop layer
+works, but file access is markedly slower.
 
 ## Quick Start
 

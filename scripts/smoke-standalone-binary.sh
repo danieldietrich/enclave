@@ -18,8 +18,17 @@ trap 'rm -rf "$sandbox"' EXIT
 mkdir -p "$sandbox/home" "$sandbox/run" "$sandbox/cwd"
 cp "$binary" "$sandbox/run/enclave"
 
+# macOS ignores the XDG_* overrides and uses the Apple layout keyed by the
+# reverse-DNS application id, so the expected host paths differ per platform.
+if [ "$(uname -s)" = "Darwin" ]; then
+    assets="$sandbox/home/Library/Caches/org.eclipse.enclave/assets"
+    legacy="$sandbox/home/Library/Application Support/org.eclipse.enclave/data"
+else
+    assets="$sandbox/cache/enclave/assets"
+    legacy="$sandbox/data/enclave"
+fi
+
 # A complete unversioned root from an older make install must not win.
-legacy="$sandbox/data/enclave"
 mkdir -p "$legacy/extensions/tools" "$legacy/extensions/features" \
     "$legacy/runtime-assets/gateway-allowlists" \
     "$legacy/runtime-assets/build-scripts" "$legacy/docs"
@@ -44,13 +53,13 @@ for pid in "${pids[@]}"; do
     wait "$pid"
 done
 
-assets="$sandbox/cache/enclave/assets"
-mapfile -t roots < <(find "$assets" -mindepth 1 -maxdepth 1 -type d)
-if (( ${#roots[@]} != 1 )); then
-    printf 'expected one extracted asset cache entry, found %d\n' "${#roots[@]}" >&2
+# Bash 3.2 on macOS runners has no mapfile, so count and read separately.
+root_count=$(find "$assets" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d '[:space:]')
+if [ "$root_count" -ne 1 ]; then
+    printf 'expected one extracted asset cache entry, found %d\n' "$root_count" >&2
     exit 1
 fi
-root=${roots[0]}
+root=$(find "$assets" -mindepth 1 -maxdepth 1 -type d)
 test -f "$root/.dockerignore"
 test -f "$root/docs/README.md"
 test -f "$root/internal/gateway/mitm/proxy.go"
